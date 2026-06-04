@@ -13,7 +13,17 @@
                 <h1>Roku</h1>
                 <p id="status">Set a Roku IP</p>
             </div>
-            <button id="settingsBtn" class="icon-button" aria-label="Settings">...</button>
+            <div class="top-actions">
+                <button id="helpBtn" class="icon-button" aria-label="Help">?</button>
+                <button id="settingsBtn" class="icon-button" aria-label="Settings">...</button>
+            </div>
+        </section>
+
+        <section id="helpPanel" class="help-panel hidden">
+            <h2>Roku Setup</h2>
+            <p>On the TV, open Settings &gt; System &gt; Advanced system settings &gt; Control by mobile apps.</p>
+            <p>Set Network access to Enabled. If buttons still fail, use Permissive.</p>
+            <button id="closeHelpBtn">Got it</button>
         </section>
 
         <section id="settings" class="settings hidden">
@@ -45,17 +55,17 @@
 
             <div class="control-stage">
                 <div class="dpad" aria-label="Directional pad">
-                    <button class="dpad-corner dpad-replay" data-key="InstantReplay" aria-label="Replay">Replay</button>
+                    <span></span>
                     <button class="dpad-key dpad-up" data-key="Up" aria-label="Up">Up</button>
-                    <button class="dpad-corner dpad-info" data-key="Info" aria-label="Info">Info</button>
+                    <span></span>
 
                     <button class="dpad-key dpad-left" data-key="Left" aria-label="Left">Left</button>
                     <button class="dpad-key dpad-ok" data-key="Select" aria-label="Select">OK</button>
                     <button class="dpad-key dpad-right" data-key="Right" aria-label="Right">Right</button>
 
-                    <button class="dpad-corner dpad-search" data-key="Search" aria-label="Search">Search</button>
+                    <span></span>
                     <button class="dpad-key dpad-down" data-key="Down" aria-label="Down">Down</button>
-                    <button class="dpad-corner dpad-enter" data-key="Enter" aria-label="Enter">Enter</button>
+                    <span></span>
                 </div>
 
                 <div class="volume-panel" aria-label="Volume controls">
@@ -74,6 +84,12 @@
                 <button data-key="Play">Play</button>
                 <button data-key="Fwd">Fwd</button>
             </div>
+
+            <div class="utility-row">
+                <button data-key="Info">Info</button>
+                <button data-key="InstantReplay">Replay</button>
+                <button data-key="Search">Search</button>
+            </div>
         </section>
 
         <section id="textPanel" class="text-panel hidden">
@@ -89,6 +105,6 @@
             <p id="voiceStatus">Voice uses browser speech when available.</p>
         </section>
     </main>
-    <script src="./js/app.js?v=6"></script>
+    <script src="./js/app.js?v=7"></script>
 </body>
 </html>

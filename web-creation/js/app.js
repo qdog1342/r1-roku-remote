@@ -3,7 +3,8 @@
     var state = {
         rokuIp: "",
         bridgeUrl: "",
-        activeIndex: 7
+        activeIndex: 7,
+        sawSetupHelp: false
     };
     var controls = [];
     var lastWheelAt = 0;
@@ -14,6 +15,7 @@
 
     var statusEl = document.getElementById("status");
     var settingsEl = document.getElementById("settings");
+    var helpPanel = document.getElementById("helpPanel");
     var ipInput = document.getElementById("rokuIp");
     var bridgeInput = document.getElementById("bridgeUrl");
     var devicesEl = document.getElementById("devices");
@@ -33,13 +35,19 @@
         bind();
         updateFocus();
         setStatus(state.rokuIp ? "Ready " + state.rokuIp : "Set a Roku IP");
+        if (!state.sawSetupHelp) {
+            openHelp();
+        }
         autoDiscover();
     }
 
     function bind() {
         document.getElementById("settingsBtn").addEventListener("click", function () {
             settingsEl.classList.toggle("hidden");
+            helpPanel.classList.add("hidden");
         });
+        document.getElementById("helpBtn").addEventListener("click", openHelp);
+        document.getElementById("closeHelpBtn").addEventListener("click", closeHelp);
         document.getElementById("saveBtn").addEventListener("click", saveSettings);
         document.getElementById("discoverBtn").addEventListener("click", discover);
         document.getElementById("sendTextBtn").addEventListener("click", sendText);
@@ -96,6 +104,18 @@
         state.bridgeUrl = cleanBridge(bridgeInput.value);
         await saveState();
         setStatus(state.rokuIp ? "Saved " + state.rokuIp : "Saved settings");
+    }
+
+    async function openHelp() {
+        helpPanel.classList.remove("hidden");
+        settingsEl.classList.add("hidden");
+        textPanel.classList.add("hidden");
+    }
+
+    async function closeHelp() {
+        helpPanel.classList.add("hidden");
+        state.sawSetupHelp = true;
+        await saveState();
     }
 
     async function discover() {
@@ -282,6 +302,7 @@
     function openTextPanel() {
         textPanel.classList.remove("hidden");
         settingsEl.classList.add("hidden");
+        helpPanel.classList.add("hidden");
         voiceTextInput.focus();
         setVoiceStatus("Hold side button to speak, or type.");
     }
@@ -416,7 +437,7 @@
                 state = Object.assign(state, JSON.parse(raw));
             }
         } catch (error) {
-            state = { rokuIp: "", bridgeUrl: "", activeIndex: 7 };
+            state = { rokuIp: "", bridgeUrl: "", activeIndex: 7, sawSetupHelp: false };
         }
     }
 
