@@ -36,8 +36,9 @@ const server = http.createServer(async (req, res) => {
         json(res, { ok: false, error: "ip and key are required" }, 400);
         return;
       }
-      const ok = await postKey(ip, key);
-      json(res, { ok });
+      const result = await postKey(ip, key);
+      console.log(`[keypress] ${ip} ${key} -> ${result.ok ? "ok" : "fail"} ${result.status || result.error || ""}`);
+      json(res, result, result.ok ? 200 : 502);
       return;
     }
 
@@ -181,15 +182,71 @@ async function scanPrefix(prefix, found) {
   await Promise.all(workers);
 }
 
-function postKey(ip, key) {
-  return request("POST", `http://${ip}:8060/keypress/${encodeURIComponent(key)}`)
-    .then(() => true)
-    .catch(() => false);
+async function postKey(ip, key) {
+  const attempts = keyAttempts(key);
+  let last = null;
+  for (const attempt of attempts) {
+    last = await requestDetailed("POST", `http://${ip}:8060/keypress/${encodeURIComponent(attempt)}`);
+    if (last.ok) {
+      return { ok: true, key: attempt, status: last.status };
+    }
+    if (last.status === 401 || last.status === 403) {
+      return {
+        ok: false,
+        key: attempt,
+        status: last.status,
+        error: "Roku rejected remote control. Enable Control by mobile apps."
+      };
+    }
+  }
+  return {
+    ok: false,
+    key,
+    status: last && last.status,
+    error: (last && last.error) || "Roku did not accept the keypress"
+  };
+}
+
+function keyAttempts(key) {
+  const aliases = {
+    Home: ["home"],
+    Rev: ["rev"],
+    Fwd: ["fwd"],
+    Play: ["play"],
+    Select: ["select"],
+    Left: ["left"],
+    Right: ["right"],
+    Down: ["down"],
+    Up: ["up"],
+    Back: ["back"],
+    Info: ["info"],
+    Backspace: ["backspace"],
+    Search: ["search"],
+    Enter: ["enter"]
+  };
+  return [...new Set([...(aliases[key] || []), key])];
 }
 
 function request(method, target) {
+  return requestDetailed(method, target).then(result => {
+    if (result.ok) {
+      return result.data;
+    }
+    throw new Error(result.error || `HTTP ${result.status}`);
+  });
+}
+
+function requestDetailed(method, target) {
   return new Promise((resolve, reject) => {
-    const req = http.request(target, { method, timeout: 1200 }, res => {
+    const options = {
+      method,
+      timeout: 1200,
+      headers: method === "POST" ? {
+        "Content-Length": "0",
+        "Content-Type": "application/x-www-form-urlencoded"
+      } : undefined
+    };
+    const req = http.request(target, options, res => {
       let data = "";
       res.setEncoding("utf8");
       res.on("data", chunk => {
@@ -197,17 +254,19 @@ function request(method, target) {
       });
       res.on("end", () => {
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(data);
+          resolve({ ok: true, status: res.statusCode, data });
         } else {
-          reject(new Error(`HTTP ${res.statusCode}`));
+          resolve({ ok: false, status: res.statusCode, data, error: `HTTP ${res.statusCode}` });
         }
       });
     });
     req.on("timeout", () => {
       req.destroy(new Error("timeout"));
     });
-    req.on("error", reject);
-    req.end();
+    req.on("error", error => {
+      resolve({ ok: false, error: error.message });
+    });
+    req.end("");
   });
 }
 

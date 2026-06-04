@@ -153,12 +153,17 @@
         var bridge = cleanBridge(bridgeInput.value || state.bridgeUrl);
         try {
             if (bridge) {
-                await fetch(bridge + "/keypress", {
+                var response = await fetch(bridge + "/keypress", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ ip: ip, key: key })
                 });
-                setStatus("Sent " + key);
+                var result = await response.json();
+                if (!response.ok || !result.ok) {
+                    setStatus(result.error || "Roku rejected " + key);
+                    return;
+                }
+                setStatus("Sent " + (result.key || key));
                 return;
             }
 
