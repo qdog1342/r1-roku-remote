@@ -1,7 +1,7 @@
 {
   "title": "R1 Roku Remote",
-  "url": "http://10.0.4.24:8080/?v=5",
-  "description": "Roku-style remote for Rabbit R1 with wheel volume control.",
+  "url": "http://10.0.4.24:8080/?v=6",
+  "description": "Roku-style remote for Rabbit R1 with wheel volume and side-button text entry.",
   "iconUrl": "",
   "themeColor": "#7B2BD1"
 }

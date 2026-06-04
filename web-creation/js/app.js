@@ -7,6 +7,10 @@
     };
     var controls = [];
     var lastWheelAt = 0;
+    var recognition = null;
+    var isListening = false;
+    var suppressSideClickUntil = 0;
+    var sendVoiceOnRelease = false;
 
     var statusEl = document.getElementById("status");
     var settingsEl = document.getElementById("settings");
@@ -14,6 +18,9 @@
     var bridgeInput = document.getElementById("bridgeUrl");
     var devicesEl = document.getElementById("devices");
     var textInput = document.getElementById("textInput");
+    var textPanel = document.getElementById("textPanel");
+    var voiceTextInput = document.getElementById("voiceTextInput");
+    var voiceStatus = document.getElementById("voiceStatus");
 
     init();
 
@@ -36,6 +43,12 @@
         document.getElementById("saveBtn").addEventListener("click", saveSettings);
         document.getElementById("discoverBtn").addEventListener("click", discover);
         document.getElementById("sendTextBtn").addEventListener("click", sendText);
+        document.getElementById("closeTextBtn").addEventListener("click", closeTextPanel);
+        document.getElementById("sendVoiceTextBtn").addEventListener("click", sendVoiceText);
+        document.getElementById("startVoiceBtn").addEventListener("click", function () {
+            sendVoiceOnRelease = false;
+            startVoiceInput(false);
+        });
 
         controls.forEach(function (button, index) {
             button.addEventListener("click", function () {
@@ -52,12 +65,29 @@
             sendWheelVolume("VolumeDown");
         });
         window.addEventListener("sideClick", function () {
+            if (Date.now() < suppressSideClickUntil) {
+                return;
+            }
             state.activeIndex = findControlIndex("Select");
             updateFocus();
             sendKey("Select");
         });
         window.addEventListener("longPressStart", function () {
-            sendKey("VolumeMute");
+            sendVoiceOnRelease = true;
+            suppressSideClickUntil = Date.now() + 1200;
+            startVoiceInput(true);
+        });
+        window.addEventListener("longPressEnd", function () {
+            suppressSideClickUntil = Date.now() + 600;
+            stopVoiceInput();
+            if (sendVoiceOnRelease) {
+                setTimeout(function () {
+                    if (voiceTextInput.value) {
+                        sendVoiceText();
+                    }
+                    sendVoiceOnRelease = false;
+                }, 350);
+            }
         });
     }
 
@@ -227,11 +257,101 @@
         if (!text) {
             return;
         }
+        await sendLiteralText(text);
+        textInput.value = "";
+    }
+
+    async function sendVoiceText() {
+        var text = voiceTextInput.value || "";
+        if (!text) {
+            setVoiceStatus("Nothing to send");
+            return;
+        }
+        await sendLiteralText(text);
+        voiceTextInput.value = "";
+        closeTextPanel();
+    }
+
+    async function sendLiteralText(text) {
         for (var i = 0; i < text.length; i++) {
             await sendKey("Lit_" + text[i]);
             await wait(70);
         }
-        textInput.value = "";
+    }
+
+    function openTextPanel() {
+        textPanel.classList.remove("hidden");
+        settingsEl.classList.add("hidden");
+        voiceTextInput.focus();
+        setVoiceStatus("Hold side button to speak, or type.");
+    }
+
+    function closeTextPanel() {
+        stopVoiceInput();
+        textPanel.classList.add("hidden");
+    }
+
+    function startVoiceInput(autoSend) {
+        openTextPanel();
+        var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            sendVoiceOnRelease = false;
+            setVoiceStatus("Voice unavailable; type instead.");
+            voiceTextInput.focus();
+            return;
+        }
+        if (isListening) {
+            return;
+        }
+        try {
+            recognition = new SpeechRecognition();
+            recognition.lang = "en-US";
+            recognition.interimResults = true;
+            recognition.continuous = false;
+            recognition.onstart = function () {
+                isListening = true;
+                setVoiceStatus("Listening...");
+            };
+            recognition.onresult = function (event) {
+                var transcript = "";
+                for (var i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                voiceTextInput.value = transcript.trim();
+            };
+            recognition.onerror = function () {
+                setVoiceStatus("Voice unavailable; type instead.");
+                isListening = false;
+            };
+            recognition.onend = function () {
+                isListening = false;
+                if (voiceTextInput.value && autoSend) {
+                    setVoiceStatus("Sending...");
+                } else if (voiceTextInput.value) {
+                    setVoiceStatus("Press Send");
+                } else {
+                    setVoiceStatus("Type instead.");
+                }
+            };
+            recognition.start();
+        } catch (error) {
+            setVoiceStatus("Voice unavailable; type instead.");
+            isListening = false;
+        }
+    }
+
+    function stopVoiceInput() {
+        if (recognition && isListening) {
+            try {
+                recognition.stop();
+            } catch (error) {
+                isListening = false;
+            }
+        }
+    }
+
+    function setVoiceStatus(text) {
+        voiceStatus.textContent = text;
     }
 
     function moveFocus(delta) {

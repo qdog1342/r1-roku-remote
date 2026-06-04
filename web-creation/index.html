@@ -45,17 +45,17 @@
 
             <div class="control-stage">
                 <div class="dpad" aria-label="Directional pad">
-                    <span></span>
+                    <button class="dpad-corner dpad-replay" data-key="InstantReplay" aria-label="Replay">Replay</button>
                     <button class="dpad-key dpad-up" data-key="Up" aria-label="Up">Up</button>
-                    <span></span>
+                    <button class="dpad-corner dpad-info" data-key="Info" aria-label="Info">Info</button>
 
                     <button class="dpad-key dpad-left" data-key="Left" aria-label="Left">Left</button>
                     <button class="dpad-key dpad-ok" data-key="Select" aria-label="Select">OK</button>
                     <button class="dpad-key dpad-right" data-key="Right" aria-label="Right">Right</button>
 
-                    <span></span>
+                    <button class="dpad-corner dpad-search" data-key="Search" aria-label="Search">Search</button>
                     <button class="dpad-key dpad-down" data-key="Down" aria-label="Down">Down</button>
-                    <span></span>
+                    <button class="dpad-corner dpad-enter" data-key="Enter" aria-label="Enter">Enter</button>
                 </div>
 
                 <div class="volume-panel" aria-label="Volume controls">
@@ -74,14 +74,21 @@
                 <button data-key="Play">Play</button>
                 <button data-key="Fwd">Fwd</button>
             </div>
+        </section>
 
-            <div class="utility-row">
-                <button data-key="Info">Info</button>
-                <button data-key="InstantReplay">Replay</button>
-                <button data-key="Search">Search</button>
+        <section id="textPanel" class="text-panel hidden">
+            <div class="text-panel-head">
+                <strong>Text</strong>
+                <button id="closeTextBtn" aria-label="Close text entry">Close</button>
             </div>
+            <input id="voiceTextInput" placeholder="hold side button or type">
+            <div class="row">
+                <button id="startVoiceBtn">Voice</button>
+                <button id="sendVoiceTextBtn">Send</button>
+            </div>
+            <p id="voiceStatus">Voice uses browser speech when available.</p>
         </section>
     </main>
-    <script src="./js/app.js?v=5"></script>
+    <script src="./js/app.js?v=6"></script>
 </body>
 </html>
