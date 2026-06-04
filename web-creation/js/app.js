@@ -12,6 +12,8 @@
     var isListening = false;
     var suppressSideClickUntil = 0;
     var sendVoiceOnRelease = false;
+    var liveTextSent = "";
+    var liveVoiceSent = "";
 
     var statusEl = document.getElementById("status");
     var settingsEl = document.getElementById("settings");
@@ -64,6 +66,12 @@
         document.getElementById("sendTextBtn").addEventListener("click", sendText);
         document.getElementById("closeTextBtn").addEventListener("click", closeTextPanel);
         document.getElementById("sendVoiceTextBtn").addEventListener("click", sendVoiceText);
+        textInput.addEventListener("input", function () {
+            syncLiveText(textInput.value || "", "settings");
+        });
+        voiceTextInput.addEventListener("input", function () {
+            syncLiveText(voiceTextInput.value || "", "voice");
+        });
         document.getElementById("startVoiceBtn").addEventListener("click", function () {
             sendVoiceOnRelease = false;
             startVoiceInput(false);
@@ -78,10 +86,10 @@
         });
 
         window.addEventListener("scrollUp", function () {
-            sendWheelVolume("VolumeUp");
+            sendWheelVolume("VolumeDown");
         });
         window.addEventListener("scrollDown", function () {
-            sendWheelVolume("VolumeDown");
+            sendWheelVolume("VolumeUp");
         });
         window.addEventListener("sideClick", function () {
             if (Date.now() < suppressSideClickUntil) {
@@ -300,8 +308,9 @@
         if (!text) {
             return;
         }
-        await sendLiteralText(text);
+        await syncLiveText(text, "settings");
         textInput.value = "";
+        liveTextSent = "";
     }
 
     async function sendVoiceText() {
@@ -310,8 +319,9 @@
             setVoiceStatus("Nothing to send");
             return;
         }
-        await sendLiteralText(text);
+        await syncLiveText(text, "voice");
         voiceTextInput.value = "";
+        liveVoiceSent = "";
         closeTextPanel();
     }
 
@@ -320,6 +330,37 @@
             await sendKey("Lit_" + text[i]);
             await wait(70);
         }
+    }
+
+    async function syncLiveText(nextText, channel) {
+        var previous = channel === "voice" ? liveVoiceSent : liveTextSent;
+        if (nextText === previous) {
+            return;
+        }
+
+        var common = commonPrefixLength(previous, nextText);
+        for (var remove = previous.length; remove > common; remove--) {
+            await sendKey("Backspace");
+            await wait(55);
+        }
+
+        var added = nextText.slice(common);
+        await sendLiteralText(added);
+
+        if (channel === "voice") {
+            liveVoiceSent = nextText;
+        } else {
+            liveTextSent = nextText;
+        }
+    }
+
+    function commonPrefixLength(a, b) {
+        var limit = Math.min(a.length, b.length);
+        var index = 0;
+        while (index < limit && a[index] === b[index]) {
+            index++;
+        }
+        return index;
     }
 
     function openTextPanel(focusText) {
@@ -364,6 +405,7 @@
                     transcript += event.results[i][0].transcript;
                 }
                 voiceTextInput.value = transcript.trim();
+                syncLiveText(voiceTextInput.value, "voice");
             };
             recognition.onerror = function () {
                 setVoiceStatus("Voice unavailable. Tap field to type.");
