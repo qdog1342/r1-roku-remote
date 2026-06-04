@@ -8,25 +8,78 @@
 </head>
 <body>
     <main id="app">
-        <section class="top">
-            <div>
-                <h1>Roku</h1>
-                <p id="status">Set a Roku IP</p>
+        <section class="status-strip">
+            <p id="status">Set a Roku IP</p>
+        </section>
+
+        <section class="remote" id="remote">
+            <div class="primary-row">
+                <button data-key="Back">Back</button>
+                <button data-key="Home">Home</button>
             </div>
-            <div class="top-actions">
-                <button id="helpBtn" class="icon-button" aria-label="Help">?</button>
-                <button id="settingsBtn" class="icon-button" aria-label="Settings">...</button>
+
+            <div class="control-stage">
+                <div class="dpad" aria-label="Directional pad">
+                    <span></span>
+                    <button class="dpad-key dpad-up" data-key="Up" aria-label="Up">Up</button>
+                    <span></span>
+
+                    <button class="dpad-key dpad-left" data-key="Left" aria-label="Left">Left</button>
+                    <button class="dpad-key dpad-ok" data-key="Select" aria-label="Select">OK</button>
+                    <button class="dpad-key dpad-right" data-key="Right" aria-label="Right">Right</button>
+
+                    <span></span>
+                    <button class="dpad-key dpad-down" data-key="Down" aria-label="Down">Down</button>
+                    <span></span>
+                </div>
+
+                <div class="volume-panel" aria-label="Volume controls">
+                    <strong>VOL</strong>
+                    <div class="volume-track">
+                        <span>+</span>
+                        <div></div>
+                        <span>-</span>
+                    </div>
+                    <button data-key="VolumeMute">Mute</button>
+                </div>
+            </div>
+
+            <div class="primary-row">
+                <button data-key="Play">Play</button>
+                <button id="moreBtn">More</button>
             </div>
         </section>
 
-        <section id="helpPanel" class="help-panel hidden">
+        <section id="morePanel" class="panel hidden">
+            <div class="panel-head">
+                <strong>More</strong>
+                <button id="closeMoreBtn">Close</button>
+            </div>
+            <div class="more-grid">
+                <button data-key="PowerOff">Power</button>
+                <button data-key="InstantReplay">Replay</button>
+                <button data-key="Rev">Rev</button>
+                <button data-key="Fwd">Fwd</button>
+                <button data-key="Info">Info</button>
+                <button data-key="Search">Search</button>
+                <button id="openTextBtn">Text</button>
+                <button id="settingsBtn">Setup</button>
+                <button id="helpBtn">Help</button>
+            </div>
+        </section>
+
+        <section id="helpPanel" class="panel hidden">
             <h2>Roku Setup</h2>
             <p>On the TV, open Settings &gt; System &gt; Advanced system settings &gt; Control by mobile apps.</p>
             <p>Set Network access to Enabled. If buttons still fail, use Permissive.</p>
             <button id="closeHelpBtn">Got it</button>
         </section>
 
-        <section id="settings" class="settings hidden">
+        <section id="settings" class="panel settings hidden">
+            <div class="panel-head">
+                <strong>Setup</strong>
+                <button id="closeSettingsBtn">Close</button>
+            </div>
             <label>
                 Roku IP
                 <input id="rokuIp" inputmode="decimal" placeholder="192.168.1.45">
@@ -46,56 +99,10 @@
             </div>
         </section>
 
-        <section class="remote" id="remote">
-            <div class="quick-row">
-                <button data-key="Back">Back</button>
-                <button data-key="Home">Home</button>
-                <button data-key="PowerOff">Power</button>
-            </div>
-
-            <div class="control-stage">
-                <div class="dpad" aria-label="Directional pad">
-                    <span></span>
-                    <button class="dpad-key dpad-up" data-key="Up" aria-label="Up">Up</button>
-                    <span></span>
-
-                    <button class="dpad-key dpad-left" data-key="Left" aria-label="Left">Left</button>
-                    <button class="dpad-key dpad-ok" data-key="Select" aria-label="Select">OK</button>
-                    <button class="dpad-key dpad-right" data-key="Right" aria-label="Right">Right</button>
-
-                    <span></span>
-                    <button class="dpad-key dpad-down" data-key="Down" aria-label="Down">Down</button>
-                    <span></span>
-                </div>
-
-                <div class="volume-panel" aria-label="Volume controls">
-                    <div class="volume-title">VOL</div>
-                    <div class="volume-track">
-                        <span>+</span>
-                        <div></div>
-                        <span>-</span>
-                    </div>
-                    <button data-key="VolumeMute">Mute</button>
-                </div>
-            </div>
-
-            <div class="transport-row">
-                <button data-key="Rev">Rev</button>
-                <button data-key="Play">Play</button>
-                <button data-key="Fwd">Fwd</button>
-            </div>
-
-            <div class="utility-row">
-                <button data-key="Info">Info</button>
-                <button data-key="InstantReplay">Replay</button>
-                <button data-key="Search">Search</button>
-            </div>
-        </section>
-
-        <section id="textPanel" class="text-panel hidden">
-            <div class="text-panel-head">
+        <section id="textPanel" class="panel text-panel hidden">
+            <div class="panel-head">
                 <strong>Text</strong>
-                <button id="closeTextBtn" aria-label="Close text entry">Close</button>
+                <button id="closeTextBtn">Close</button>
             </div>
             <input id="voiceTextInput" placeholder="hold side button or type">
             <div class="row">
@@ -105,6 +112,6 @@
             <p id="voiceStatus">Voice uses browser speech when available.</p>
         </section>
     </main>
-    <script src="./js/app.js?v=7"></script>
+    <script src="./js/app.js?v=8"></script>
 </body>
 </html>

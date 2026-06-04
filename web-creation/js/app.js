@@ -16,6 +16,7 @@
     var statusEl = document.getElementById("status");
     var settingsEl = document.getElementById("settings");
     var helpPanel = document.getElementById("helpPanel");
+    var morePanel = document.getElementById("morePanel");
     var ipInput = document.getElementById("rokuIp");
     var bridgeInput = document.getElementById("bridgeUrl");
     var devicesEl = document.getElementById("devices");
@@ -43,11 +44,19 @@
 
     function bind() {
         document.getElementById("settingsBtn").addEventListener("click", function () {
-            settingsEl.classList.toggle("hidden");
+            settingsEl.classList.remove("hidden");
             helpPanel.classList.add("hidden");
+            morePanel.classList.add("hidden");
+            textPanel.classList.add("hidden");
+        });
+        document.getElementById("moreBtn").addEventListener("click", openMore);
+        document.getElementById("closeMoreBtn").addEventListener("click", closeMore);
+        document.getElementById("closeSettingsBtn").addEventListener("click", function () {
+            settingsEl.classList.add("hidden");
         });
         document.getElementById("helpBtn").addEventListener("click", openHelp);
         document.getElementById("closeHelpBtn").addEventListener("click", closeHelp);
+        document.getElementById("openTextBtn").addEventListener("click", openTextPanel);
         document.getElementById("saveBtn").addEventListener("click", saveSettings);
         document.getElementById("discoverBtn").addEventListener("click", discover);
         document.getElementById("sendTextBtn").addEventListener("click", sendText);
@@ -110,12 +119,24 @@
         helpPanel.classList.remove("hidden");
         settingsEl.classList.add("hidden");
         textPanel.classList.add("hidden");
+        morePanel.classList.add("hidden");
     }
 
     async function closeHelp() {
         helpPanel.classList.add("hidden");
         state.sawSetupHelp = true;
         await saveState();
+    }
+
+    function openMore() {
+        morePanel.classList.remove("hidden");
+        settingsEl.classList.add("hidden");
+        helpPanel.classList.add("hidden");
+        textPanel.classList.add("hidden");
+    }
+
+    function closeMore() {
+        morePanel.classList.add("hidden");
     }
 
     async function discover() {
@@ -303,6 +324,7 @@
         textPanel.classList.remove("hidden");
         settingsEl.classList.add("hidden");
         helpPanel.classList.add("hidden");
+        morePanel.classList.add("hidden");
         voiceTextInput.focus();
         setVoiceStatus("Hold side button to speak, or type.");
     }
