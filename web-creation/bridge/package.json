@@ -1,0 +1,10 @@
+{
+  "name": "r1-roku-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local CORS bridge for the R1 Roku Remote web creation.",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
+

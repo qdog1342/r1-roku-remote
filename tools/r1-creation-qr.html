@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>R1 Creation QR</title>
+    <script src="https://unpkg.com/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 28px;
+            font-family: Arial, sans-serif;
+            background: #f5f6f7;
+            color: #151719;
+        }
+        main {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin: 12px 0;
+        }
+        input,
+        textarea {
+            display: block;
+            width: 100%;
+            margin-top: 6px;
+            padding: 10px;
+            border: 1px solid #c9ced3;
+            font: inherit;
+        }
+        button {
+            padding: 10px 14px;
+            border: 0;
+            background: #fe5000;
+            color: white;
+            font: inherit;
+        }
+        #qr {
+            margin-top: 24px;
+            padding: 16px;
+            display: inline-block;
+            background: white;
+        }
+        pre {
+            padding: 12px;
+            background: #ffffff;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>R1 Creation QR</h1>
+    <label>
+        Title
+        <input id="title" value="R1 Roku Remote">
+    </label>
+    <label>
+        URL
+        <input id="url" placeholder="http://192.168.1.10:8080/">
+    </label>
+    <label>
+        Description
+        <textarea id="description">Roku remote for Rabbit R1.</textarea>
+    </label>
+    <label>
+        Icon URL
+        <input id="iconUrl">
+    </label>
+    <label>
+        Theme Color
+        <input id="themeColor" value="#FE5000">
+    </label>
+    <button id="make">Generate</button>
+    <div id="qr"></div>
+    <pre id="payload"></pre>
+</main>
+<script>
+    var params = new URLSearchParams(location.search);
+    ["title", "url", "description", "iconUrl", "themeColor"].forEach(function (id) {
+        if (params.get(id)) {
+            document.getElementById(id).value = params.get(id);
+        }
+    });
+
+    document.getElementById("make").addEventListener("click", generate);
+    if (document.getElementById("url").value) {
+        generate();
+    }
+
+    function generate() {
+        var data = {
+            title: value("title"),
+            url: value("url"),
+            description: value("description"),
+            iconUrl: value("iconUrl"),
+            themeColor: value("themeColor") || "#FE5000"
+        };
+        document.getElementById("payload").textContent = JSON.stringify(data, null, 2);
+        document.getElementById("qr").innerHTML = "";
+        new QRCodeStyling({
+            width: 320,
+            height: 320,
+            type: "canvas",
+            data: JSON.stringify(data),
+            margin: 8,
+            qrOptions: { errorCorrectionLevel: "L" },
+            dotsOptions: { color: "#000000", type: "rounded" },
+            cornersSquareOptions: { color: "#000000", type: "extra-rounded" },
+            cornersDotOptions: { color: "#000000", type: "dot" },
+            backgroundOptions: { color: "#ffffff" }
+        }).append(document.getElementById("qr"));
+    }
+
+    function value(id) {
+        return document.getElementById(id).value.trim();
+    }
+</script>
+</body>
+</html>
+
