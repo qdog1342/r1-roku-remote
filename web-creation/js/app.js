@@ -72,7 +72,7 @@
         controls.forEach(function (button, index) {
             button.addEventListener("click", function () {
                 state.activeIndex = index;
-                updateFocus();
+                pulseButton(button);
                 sendKey(button.dataset.key);
             });
         });
@@ -88,7 +88,7 @@
                 return;
             }
             state.activeIndex = findControlIndex("Select");
-            updateFocus();
+            pulseButton(controls[state.activeIndex]);
             sendKey("Select");
         });
         window.addEventListener("longPressStart", function () {
@@ -422,8 +422,18 @@
 
     function updateFocus() {
         controls.forEach(function (button, index) {
-            button.classList.toggle("active", index === state.activeIndex);
+            button.classList.remove("active");
         });
+    }
+
+    function pulseButton(button) {
+        if (!button) {
+            return;
+        }
+        button.classList.add("pressed");
+        setTimeout(function () {
+            button.classList.remove("pressed");
+        }, 180);
     }
 
     function setStatus(text) {

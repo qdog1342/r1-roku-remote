@@ -49,10 +49,8 @@ input {
 }
 
 .status-strip {
-    height: 34px;
-    display: grid;
-    grid-template-columns: 1fr 62px;
-    gap: 7px;
+    height: 18px;
+    display: flex;
     align-items: center;
 }
 
@@ -68,10 +66,8 @@ p {
 }
 
 .power-button {
-    height: 34px;
     border-color: #51306b;
     background: #271737;
-    font-size: 11px;
 }
 
 .remote {
@@ -81,7 +77,7 @@ p {
 
 .primary-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 7px;
 }
 
@@ -321,7 +317,7 @@ label input {
     margin-bottom: 8px;
 }
 
-button.active,
+button.pressed,
 button:active {
     border-color: #ffffff;
     box-shadow: 0 0 0 1px #ffffff inset;
