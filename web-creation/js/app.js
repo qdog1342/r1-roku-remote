@@ -89,6 +89,7 @@
                 bridgeInput.value = state.bridgeUrl;
                 await saveState();
                 setStatus("Selected " + state.rokuIp);
+                checkAccess(state.rokuIp, bridge);
             }
             json.devices.forEach(function (device) {
                 var button = document.createElement("button");
@@ -100,12 +101,32 @@
                     bridgeInput.value = state.bridgeUrl;
                     await saveState();
                     setStatus("Selected " + state.rokuIp);
+                    checkAccess(state.rokuIp, bridge);
                 });
                 devicesEl.appendChild(button);
             });
             setStatus("Found " + json.devices.length);
         } catch (error) {
             setStatus("Bridge not reachable");
+        }
+    }
+
+    async function checkAccess(ip, bridge) {
+        if (!bridge || !ip) {
+            return;
+        }
+        try {
+            var response = await fetch(bridge + "/diagnose?ip=" + encodeURIComponent(ip));
+            var result = await response.json();
+            if (result.limited) {
+                setStatus("Roku Network Access: Limited");
+            } else if (!result.keypressAllowed) {
+                setStatus("Roku rejected ECP control");
+            } else {
+                setStatus("Ready " + ip);
+            }
+        } catch (error) {
+            setStatus("Ready " + ip);
         }
     }
 

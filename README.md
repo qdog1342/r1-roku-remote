@@ -17,7 +17,13 @@ R1 Creations run in a small WebView. A WebView can send `no-cors` keypress reque
 
 On Roku OS 14.1+ you may need:
 
-`Settings > System > Advanced system settings > Control by mobile apps > Enabled`
+`Settings > System > Advanced system settings > Control by mobile apps > Network access > Enabled`
+
+If the app discovers the Roku but buttons do not work, the Roku is usually still in `Limited` network access mode. On affected Roku OS versions, `Limited` allows discovery and some queries but blocks `keypress` remote commands with:
+
+`ECP command not allowed in Limited mode.`
+
+Use `Enabled` first. If the TV still rejects commands, try `Permissive` and accept the warning prompt.
 
 ## Native Android Build
 
@@ -54,4 +60,3 @@ npm start
 ```
 
 Then enter `http://YOUR-LAN-IP:8787` as the bridge URL inside the Creation.
-

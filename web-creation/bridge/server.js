@@ -28,6 +28,16 @@ const server = http.createServer(async (req, res) => {
       json(res, { devices });
       return;
     }
+    if (req.method === "GET" && url.pathname === "/diagnose") {
+      const ip = cleanIp(url.searchParams.get("ip"));
+      if (!ip) {
+        json(res, { ok: false, error: "ip is required" }, 400);
+        return;
+      }
+      const result = await diagnose(ip);
+      json(res, result, result.ok ? 200 : 502);
+      return;
+    }
     if (req.method === "POST" && url.pathname === "/keypress") {
       const body = await readJson(req);
       const ip = cleanIp(body.ip);
@@ -129,8 +139,34 @@ function queryDevice(ip) {
   return request("GET", `http://${ip}:8060/query/device-info`).then(xml => ({
     ip,
     name: first(tag(xml, "user-device-name"), tag(xml, "friendly-device-name"), tag(xml, "model-name"), "Roku"),
-    model: first(tag(xml, "model-name"), tag(xml, "model-number"), "")
+    model: first(tag(xml, "model-name"), tag(xml, "model-number"), ""),
+    softwareVersion: first(tag(xml, "software-version"), tag(xml, "software-build"), "")
   }));
+}
+
+async function diagnose(ip) {
+  const deviceResult = await requestDetailed("GET", `http://${ip}:8060/query/device-info`);
+  const appsResult = await requestDetailed("GET", `http://${ip}:8060/query/apps`);
+  const keyResult = await requestDetailed("POST", `http://${ip}:8060/keypress/home`);
+  const limited = isLimited(appsResult) || isLimited(keyResult);
+  const blocked = appsResult.status === 401 || appsResult.status === 403 || keyResult.status === 401 || keyResult.status === 403;
+
+  return {
+    ok: deviceResult.ok && !blocked,
+    ip,
+    deviceReachable: deviceResult.ok,
+    appsAllowed: appsResult.ok,
+    keypressAllowed: keyResult.ok,
+    limited,
+    deviceStatus: deviceResult.status,
+    appsStatus: appsResult.status,
+    keypressStatus: keyResult.status,
+    message: limited
+      ? "Roku Network Access is Limited. Set Network Access to Enabled or Permissive."
+      : blocked
+        ? "Roku is rejecting ECP control. Check External Control / Network Access."
+        : "Roku ECP remote control is allowed."
+  };
 }
 
 async function scanLocalSubnets() {
@@ -191,11 +227,16 @@ async function postKey(ip, key) {
       return { ok: true, key: attempt, status: last.status };
     }
     if (last.status === 401 || last.status === 403) {
+      const accessResult = await requestDetailed("GET", `http://${ip}:8060/query/apps`);
+      const limited = isLimited(last) || isLimited(accessResult);
       return {
         ok: false,
         key: attempt,
         status: last.status,
-        error: "Roku rejected remote control. Enable Control by mobile apps."
+        limited,
+        error: limited
+          ? "Roku Network Access is Limited. Set it to Enabled or Permissive."
+          : "Roku rejected remote control. Check External Control / Network Access."
       };
     }
   }
@@ -241,9 +282,8 @@ function requestDetailed(method, target) {
     const options = {
       method,
       timeout: 1200,
-      headers: method === "POST" ? {
-        "Content-Length": "0",
-        "Content-Type": "application/x-www-form-urlencoded"
+    headers: method === "POST" ? {
+        "Content-Length": "0"
       } : undefined
     };
     const req = http.request(target, options, res => {
@@ -302,4 +342,10 @@ function tag(xml, name) {
 
 function first(...values) {
   return values.find(value => value && String(value).trim()) || "";
+}
+
+function isLimited(result) {
+  return String((result && result.data) || (result && result.error) || "")
+    .toLowerCase()
+    .includes("limited mode");
 }
