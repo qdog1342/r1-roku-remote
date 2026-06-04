@@ -10,7 +10,7 @@
     <main id="app">
         <section class="top">
             <div>
-                <h1>R1 Roku</h1>
+                <h1>Roku</h1>
                 <p id="status">Set a Roku IP</p>
             </div>
             <button id="settingsBtn" class="icon-button" aria-label="Settings">...</button>
@@ -37,31 +37,51 @@
         </section>
 
         <section class="remote" id="remote">
-            <button data-key="Home">Home</button>
-            <button data-key="Back">Back</button>
-            <button data-key="PowerOff">Power</button>
+            <div class="quick-row">
+                <button data-key="Back">Back</button>
+                <button data-key="Home">Home</button>
+                <button data-key="PowerOff">Power</button>
+            </div>
 
-            <span></span>
-            <button data-key="Up">Up</button>
-            <span></span>
+            <div class="control-stage">
+                <div class="dpad" aria-label="Directional pad">
+                    <span></span>
+                    <button class="dpad-key dpad-up" data-key="Up" aria-label="Up">Up</button>
+                    <span></span>
 
-            <button data-key="Left">Left</button>
-            <button data-key="Select" class="ok">OK</button>
-            <button data-key="Right">Right</button>
+                    <button class="dpad-key dpad-left" data-key="Left" aria-label="Left">Left</button>
+                    <button class="dpad-key dpad-ok" data-key="Select" aria-label="Select">OK</button>
+                    <button class="dpad-key dpad-right" data-key="Right" aria-label="Right">Right</button>
 
-            <span></span>
-            <button data-key="Down">Down</button>
-            <span></span>
+                    <span></span>
+                    <button class="dpad-key dpad-down" data-key="Down" aria-label="Down">Down</button>
+                    <span></span>
+                </div>
 
-            <button data-key="Rev">Rev</button>
-            <button data-key="Play">Play</button>
-            <button data-key="Fwd">Fwd</button>
+                <div class="volume-panel" aria-label="Volume controls">
+                    <div class="volume-title">VOL</div>
+                    <div class="volume-track">
+                        <span>+</span>
+                        <div></div>
+                        <span>-</span>
+                    </div>
+                    <button data-key="VolumeMute">Mute</button>
+                </div>
+            </div>
 
-            <button data-key="VolumeDown">Vol-</button>
-            <button data-key="VolumeMute">Mute</button>
-            <button data-key="VolumeUp">Vol+</button>
+            <div class="transport-row">
+                <button data-key="Rev">Rev</button>
+                <button data-key="Play">Play</button>
+                <button data-key="Fwd">Fwd</button>
+            </div>
+
+            <div class="utility-row">
+                <button data-key="Info">Info</button>
+                <button data-key="InstantReplay">Replay</button>
+                <button data-key="Search">Search</button>
+            </div>
         </section>
     </main>
-    <script src="./js/app.js?v=4"></script>
+    <script src="./js/app.js?v=5"></script>
 </body>
 </html>

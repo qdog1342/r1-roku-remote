@@ -6,6 +6,7 @@
         activeIndex: 7
     };
     var controls = [];
+    var lastWheelAt = 0;
 
     var statusEl = document.getElementById("status");
     var settingsEl = document.getElementById("settings");
@@ -21,6 +22,7 @@
         ipInput.value = state.rokuIp;
         bridgeInput.value = state.bridgeUrl;
         controls = Array.prototype.slice.call(document.querySelectorAll("[data-key]"));
+        state.activeIndex = findControlIndex("Select");
         bind();
         updateFocus();
         setStatus(state.rokuIp ? "Ready " + state.rokuIp : "Set a Roku IP");
@@ -44,16 +46,15 @@
         });
 
         window.addEventListener("scrollUp", function () {
-            moveFocus(-1);
+            sendWheelVolume("VolumeUp");
         });
         window.addEventListener("scrollDown", function () {
-            moveFocus(1);
+            sendWheelVolume("VolumeDown");
         });
         window.addEventListener("sideClick", function () {
-            var button = controls[state.activeIndex];
-            if (button) {
-                sendKey(button.dataset.key);
-            }
+            state.activeIndex = findControlIndex("Select");
+            updateFocus();
+            sendKey("Select");
         });
         window.addEventListener("longPressStart", function () {
             sendKey("VolumeMute");
@@ -109,6 +110,28 @@
         } catch (error) {
             setStatus("Bridge not reachable");
         }
+    }
+
+    function sendWheelVolume(key) {
+        var now = Date.now();
+        if (now - lastWheelAt < 90) {
+            return;
+        }
+        lastWheelAt = now;
+        pulseVolume(key);
+        sendKey(key);
+    }
+
+    function pulseVolume(key) {
+        var panel = document.querySelector(".volume-panel");
+        if (!panel) {
+            return;
+        }
+        panel.classList.remove("volume-up", "volume-down");
+        panel.classList.add(key === "VolumeUp" ? "volume-up" : "volume-down");
+        setTimeout(function () {
+            panel.classList.remove("volume-up", "volume-down");
+        }, 180);
     }
 
     async function checkAccess(ip, bridge) {
@@ -220,6 +243,15 @@
             state.activeIndex = 0;
         }
         updateFocus();
+    }
+
+    function findControlIndex(key) {
+        for (var i = 0; i < controls.length; i++) {
+            if (controls[i].dataset.key === key) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     function updateFocus() {

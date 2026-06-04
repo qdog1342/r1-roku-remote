@@ -1,7 +1,7 @@
 {
   "title": "R1 Roku Remote",
-  "url": "http://10.0.4.24:8080/?v=4",
-  "description": "Roku remote for Rabbit R1. Uses the local bridge for auto-discovery.",
+  "url": "http://10.0.4.24:8080/?v=5",
+  "description": "Roku-style remote for Rabbit R1 with wheel volume control.",
   "iconUrl": "",
-  "themeColor": "#FE5000"
+  "themeColor": "#7B2BD1"
 }
