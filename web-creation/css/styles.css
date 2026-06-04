@@ -49,8 +49,10 @@ input {
 }
 
 .status-strip {
-    height: 18px;
-    display: flex;
+    height: 34px;
+    display: grid;
+    grid-template-columns: 1fr 62px;
+    gap: 7px;
     align-items: center;
 }
 
@@ -63,6 +65,13 @@ p {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.power-button {
+    height: 34px;
+    border-color: #51306b;
+    background: #271737;
+    font-size: 11px;
 }
 
 .remote {
@@ -94,7 +103,7 @@ p {
 .dpad {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 48px);
+    grid-template-rows: repeat(3, 45px);
     gap: 0;
 }
 
@@ -260,8 +269,13 @@ p {
     height: 43px;
 }
 
-.more-grid button:nth-child(9) {
+.more-grid button:nth-child(8) {
     grid-column: 1 / -1;
+}
+
+.play-pause {
+    font-size: 19px;
+    letter-spacing: 0;
 }
 
 label {

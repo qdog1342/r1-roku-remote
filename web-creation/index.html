@@ -10,6 +10,7 @@
     <main id="app">
         <section class="status-strip">
             <p id="status">Set a Roku IP</p>
+            <button class="power-button" data-key="PowerOff" aria-label="Power">Power</button>
         </section>
 
         <section class="remote" id="remote">
@@ -45,7 +46,7 @@
             </div>
 
             <div class="primary-row">
-                <button data-key="Play">Play</button>
+                <button class="play-pause" data-key="Play" aria-label="Play/Pause">&#9654;&#10074;&#10074;</button>
                 <button id="moreBtn">More</button>
             </div>
         </section>
@@ -56,7 +57,6 @@
                 <button id="closeMoreBtn">Close</button>
             </div>
             <div class="more-grid">
-                <button data-key="PowerOff">Power</button>
                 <button data-key="InstantReplay">Replay</button>
                 <button data-key="Rev">Rev</button>
                 <button data-key="Fwd">Fwd</button>
@@ -112,6 +112,6 @@
             <p id="voiceStatus">Voice uses browser speech when available.</p>
         </section>
     </main>
-    <script src="./js/app.js?v=8"></script>
+    <script src="./js/app.js?v=9"></script>
 </body>
 </html>

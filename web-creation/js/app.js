@@ -56,7 +56,9 @@
         });
         document.getElementById("helpBtn").addEventListener("click", openHelp);
         document.getElementById("closeHelpBtn").addEventListener("click", closeHelp);
-        document.getElementById("openTextBtn").addEventListener("click", openTextPanel);
+        document.getElementById("openTextBtn").addEventListener("click", function () {
+            openTextPanel(true);
+        });
         document.getElementById("saveBtn").addEventListener("click", saveSettings);
         document.getElementById("discoverBtn").addEventListener("click", discover);
         document.getElementById("sendTextBtn").addEventListener("click", sendText);
@@ -320,12 +322,14 @@
         }
     }
 
-    function openTextPanel() {
+    function openTextPanel(focusText) {
         textPanel.classList.remove("hidden");
         settingsEl.classList.add("hidden");
         helpPanel.classList.add("hidden");
         morePanel.classList.add("hidden");
-        voiceTextInput.focus();
+        if (focusText) {
+            voiceTextInput.focus();
+        }
         setVoiceStatus("Hold side button to speak, or type.");
     }
 
@@ -335,12 +339,11 @@
     }
 
     function startVoiceInput(autoSend) {
-        openTextPanel();
+        openTextPanel(false);
         var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             sendVoiceOnRelease = false;
-            setVoiceStatus("Voice unavailable; type instead.");
-            voiceTextInput.focus();
+            setVoiceStatus("Voice unavailable. Tap field to type.");
             return;
         }
         if (isListening) {
@@ -363,7 +366,7 @@
                 voiceTextInput.value = transcript.trim();
             };
             recognition.onerror = function () {
-                setVoiceStatus("Voice unavailable; type instead.");
+                setVoiceStatus("Voice unavailable. Tap field to type.");
                 isListening = false;
             };
             recognition.onend = function () {
