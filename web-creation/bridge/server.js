@@ -1,5 +1,6 @@
 const dgram = require("dgram");
 const http = require("http");
+const os = require("os");
 const { URL } = require("url");
 
 const PORT = Number(process.env.PORT || 8787);
@@ -20,6 +21,10 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "GET" && url.pathname === "/discover") {
       const devices = await discoverRokus();
+      if (!devices.length) {
+        const scanned = await scanLocalSubnets();
+        devices.push(...scanned);
+      }
       json(res, { devices });
       return;
     }
@@ -127,6 +132,55 @@ function queryDevice(ip) {
   }));
 }
 
+async function scanLocalSubnets() {
+  const prefixes = localPrefixes();
+  const found = new Map();
+  for (const prefix of prefixes) {
+    await scanPrefix(prefix, found);
+  }
+  return [...found.values()];
+}
+
+function localPrefixes() {
+  const prefixes = new Set();
+  for (const entries of Object.values(os.networkInterfaces())) {
+    for (const entry of entries || []) {
+      if (entry.family !== "IPv4" || entry.internal) {
+        continue;
+      }
+      const parts = entry.address.split(".");
+      if (parts.length === 4) {
+        prefixes.add(`${parts[0]}.${parts[1]}.${parts[2]}.`);
+      }
+    }
+  }
+  return [...prefixes];
+}
+
+async function scanPrefix(prefix, found) {
+  const candidates = [];
+  for (let i = 1; i < 255; i++) {
+    candidates.push(`${prefix}${i}`);
+  }
+
+  let cursor = 0;
+  const workers = Array.from({ length: 48 }, async () => {
+    while (cursor < candidates.length) {
+      const ip = candidates[cursor++];
+      if (found.has(ip)) {
+        continue;
+      }
+      try {
+        const device = await queryDevice(ip);
+        found.set(ip, device);
+      } catch {
+        // Most LAN addresses are not Roku devices.
+      }
+    }
+  });
+  await Promise.all(workers);
+}
+
 function postKey(ip, key) {
   return request("POST", `http://${ip}:8060/keypress/${encodeURIComponent(key)}`)
     .then(() => true)
@@ -190,4 +244,3 @@ function tag(xml, name) {
 function first(...values) {
   return values.find(value => value && String(value).trim()) || "";
 }
-

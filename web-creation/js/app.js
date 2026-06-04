@@ -82,6 +82,14 @@
                 setStatus("No Roku devices found");
                 return;
             }
+            if (!state.rokuIp) {
+                state.rokuIp = json.devices[0].ip;
+                state.bridgeUrl = bridge;
+                ipInput.value = state.rokuIp;
+                bridgeInput.value = state.bridgeUrl;
+                await saveState();
+                setStatus("Selected " + state.rokuIp);
+            }
             json.devices.forEach(function (device) {
                 var button = document.createElement("button");
                 button.textContent = (device.name || "Roku") + " " + device.ip;
