@@ -1,6 +1,6 @@
 {
   "title": "R1 Roku Remote",
-  "url": "http://10.0.4.24:8080/?v=12",
+  "url": "http://10.0.4.68:8080/?v=13",
   "description": "Roku remote for Rabbit R1 with inverted wheel volume and live keyboard text entry.",
   "iconUrl": "",
   "themeColor": "#7B2BD1"
