@@ -65,4 +65,8 @@ Then enter `http://YOUR-LAN-IP:8787` as the bridge URL inside the Creation.
 
 This repository is public, so other people can read, fork, or open pull requests, but they cannot push changes to the main repo unless you add them as collaborators.
 
-The checked-in QR is for the current local test machine only. If your Mac's Wi-Fi IP changes, regenerate the QR with the new `http://YOUR-LAN-IP:8080/` URL and rescan it on the R1. People cloning this repo need to serve `web-creation/` on their own Wi-Fi, run the bridge, and generate a QR with their own LAN IP.
+The checked-in QR opens the GitHub Pages hosted Creation:
+
+`https://qdog1342.github.io/r1-roku-remote/web-creation/`
+
+People cloning this repo can use that hosted app, or serve `web-creation/` on their own Wi-Fi for fully local testing. Roku discovery/control still needs access to the local Roku network, so the optional bridge remains a local Wi-Fi helper.
