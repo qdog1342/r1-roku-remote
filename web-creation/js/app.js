@@ -54,6 +54,7 @@
         });
         document.getElementById("moreBtn").addEventListener("click", openMore);
         document.getElementById("closeMoreBtn").addEventListener("click", closeMore);
+        document.getElementById("findTvBtn").addEventListener("click", findTvNow);
         document.getElementById("closeSettingsBtn").addEventListener("click", function () {
             settingsEl.classList.add("hidden");
         });
@@ -150,6 +151,11 @@
         morePanel.classList.add("hidden");
     }
 
+    async function findTvNow() {
+        closeMore();
+        await autoDiscover(true);
+    }
+
     async function discover() {
         var bridge = cleanBridge(bridgeInput.value || state.bridgeUrl);
         if (!bridge) {
@@ -239,12 +245,12 @@
         }
     }
 
-    async function autoDiscover() {
+    async function autoDiscover(force) {
         if (autoDiscoverRunning) {
             return;
         }
         autoDiscoverRunning = true;
-        setStatus("Searching for Roku...");
+        setStatus(force ? "Finding TV..." : "Searching for Roku...");
 
         var found = false;
         var candidates = bridgeCandidates();

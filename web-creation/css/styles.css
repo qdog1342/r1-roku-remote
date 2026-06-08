@@ -260,7 +260,8 @@ p {
     height: 43px;
 }
 
-.more-grid button:nth-child(8) {
+.more-grid .wide-action,
+.more-grid button:nth-child(9) {
     grid-column: 1 / -1;
 }
 
