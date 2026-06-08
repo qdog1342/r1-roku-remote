@@ -1,7 +1,7 @@
 {
   "title": "R1 Roku Remote",
-  "url": "https://qdog1342.github.io/r1-roku-remote/web-creation/?v=13",
-  "description": "Roku remote for Rabbit R1 hosted from GitHub Pages.",
+  "url": "https://qdog1342.github.io/r1-roku-remote/web-creation/?v=14",
+  "description": "Roku remote for Rabbit R1 hosted from GitHub Pages with auto-discovery on launch.",
   "iconUrl": "",
   "themeColor": "#7B2BD1"
 }

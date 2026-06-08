@@ -14,6 +14,7 @@
     var sendVoiceOnRelease = false;
     var liveTextSent = "";
     var liveVoiceSent = "";
+    var autoDiscoverRunning = false;
 
     var statusEl = document.getElementById("status");
     var settingsEl = document.getElementById("settings");
@@ -37,7 +38,7 @@
         state.activeIndex = findControlIndex("Select");
         bind();
         updateFocus();
-        setStatus(state.rokuIp ? "Ready " + state.rokuIp : "Set a Roku IP");
+        setStatus("Searching for Roku...");
         if (!state.sawSetupHelp) {
             openHelp();
         }
@@ -158,38 +159,42 @@
         setStatus("Finding Roku devices...");
         devicesEl.innerHTML = "";
         try {
-            var response = await fetch(bridge + "/discover");
-            var json = await response.json();
-            if (!json.devices || !json.devices.length) {
+            var devices = await discoverWithBridge(bridge);
+            if (!devices.length) {
                 setStatus("No Roku devices found");
                 return;
             }
-            if (!state.rokuIp) {
-                state.rokuIp = json.devices[0].ip;
-                state.bridgeUrl = bridge;
-                ipInput.value = state.rokuIp;
-                bridgeInput.value = state.bridgeUrl;
-                await saveState();
-                setStatus("Selected " + state.rokuIp);
-                checkAccess(state.rokuIp, bridge);
-            }
-            json.devices.forEach(function (device) {
+            await selectDevice(devices[0], bridge);
+            devices.forEach(function (device) {
                 var button = document.createElement("button");
                 button.textContent = (device.name || "Roku") + " " + device.ip;
                 button.addEventListener("click", async function () {
-                    state.rokuIp = device.ip;
-                    state.bridgeUrl = bridge;
-                    ipInput.value = state.rokuIp;
-                    bridgeInput.value = state.bridgeUrl;
-                    await saveState();
-                    setStatus("Selected " + state.rokuIp);
-                    checkAccess(state.rokuIp, bridge);
+                    await selectDevice(device, bridge);
                 });
                 devicesEl.appendChild(button);
             });
-            setStatus("Found " + json.devices.length);
         } catch (error) {
             setStatus("Bridge not reachable");
+        }
+    }
+
+    async function discoverWithBridge(bridge) {
+        var response = await fetch(bridge + "/discover");
+        var json = await response.json();
+        return json.devices || [];
+    }
+
+    async function selectDevice(device, bridge) {
+        state.rokuIp = cleanIp(device.ip || device);
+        state.bridgeUrl = cleanBridge(bridge || "");
+        ipInput.value = state.rokuIp;
+        bridgeInput.value = state.bridgeUrl;
+        await saveState();
+        setStatus("Selected " + state.rokuIp);
+        if (state.bridgeUrl) {
+            checkAccess(state.rokuIp, state.bridgeUrl);
+        } else {
+            setStatus("Ready " + state.rokuIp);
         }
     }
 
@@ -235,34 +240,143 @@
     }
 
     async function autoDiscover() {
-        if (state.rokuIp) {
+        if (autoDiscoverRunning) {
             return;
         }
+        autoDiscoverRunning = true;
+        setStatus("Searching for Roku...");
 
-        var bridge = cleanBridge(bridgeInput.value || state.bridgeUrl || guessBridgeUrl());
-        if (!bridge) {
-            return;
-        }
-
-        try {
-            var health = await fetch(bridge + "/health");
-            if (!health.ok) {
-                return;
+        var found = false;
+        var candidates = bridgeCandidates();
+        for (var i = 0; i < candidates.length; i++) {
+            var bridge = candidates[i];
+            try {
+                var health = await fetch(bridge + "/health", { signal: timeoutSignal(1400) });
+                if (!health.ok) {
+                    continue;
+                }
+                var devices = await discoverWithBridge(bridge);
+                if (devices.length) {
+                    await selectDevice(devices[0], bridge);
+                    found = true;
+                    break;
+                }
+            } catch (error) {
+                // Try the next candidate.
             }
-            state.bridgeUrl = bridge;
-            bridgeInput.value = bridge;
-            await saveState();
-            discover();
-        } catch (error) {
-            setStatus("Set a Roku IP");
         }
+
+        if (!found) {
+            var direct = await discoverDirectRoku();
+            if (direct) {
+                await selectDevice(direct, "");
+                found = true;
+            }
+        }
+
+        if (!found && state.rokuIp) {
+            setStatus("Ready " + state.rokuIp);
+        } else if (!found) {
+            setStatus("No Roku found");
+        }
+        autoDiscoverRunning = false;
+    }
+
+    function bridgeCandidates() {
+        var seen = {};
+        var list = [
+            cleanBridge(bridgeInput.value),
+            cleanBridge(state.bridgeUrl),
+            cleanBridge(new URLSearchParams(location.search).get("bridge")),
+            guessBridgeUrl()
+        ];
+        return list.filter(function (url) {
+            if (!url || seen[url]) {
+                return false;
+            }
+            seen[url] = true;
+            return true;
+        });
     }
 
     function guessBridgeUrl() {
         if (!location.hostname || location.protocol === "file:") {
             return "";
         }
+        if (location.hostname.indexOf("github.io") !== -1) {
+            return "";
+        }
         return location.protocol + "//" + location.hostname + ":8787";
+    }
+
+    async function discoverDirectRoku() {
+        var prefixes = subnetPrefixes();
+        for (var p = 0; p < prefixes.length; p++) {
+            var found = await scanPrefixForRoku(prefixes[p]);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    function subnetPrefixes() {
+        var prefixes = [];
+        var saved = cleanIp(state.rokuIp || ipInput.value);
+        var dot = saved.lastIndexOf(".");
+        if (dot > 0) {
+            prefixes.push(saved.slice(0, dot + 1));
+        }
+        prefixes.push("10.0.4.", "10.0.0.", "10.0.1.", "192.168.1.", "192.168.0.");
+        var seen = {};
+        return prefixes.filter(function (prefix) {
+            if (!prefix || seen[prefix]) {
+                return false;
+            }
+            seen[prefix] = true;
+            return true;
+        });
+    }
+
+    async function scanPrefixForRoku(prefix) {
+        var cursor = 1;
+        var found = null;
+        var workers = [];
+        for (var worker = 0; worker < 16; worker++) {
+            workers.push((async function () {
+                while (!found && cursor < 255) {
+                    var ip = prefix + cursor++;
+                    if (await probeRoku(ip)) {
+                        found = { ip: ip, name: "Roku" };
+                    }
+                }
+            })());
+        }
+        await Promise.race([
+            Promise.all(workers),
+            wait(5500)
+        ]);
+        return found;
+    }
+
+    async function probeRoku(ip) {
+        try {
+            await fetch("http://" + ip + ":8060/query/device-info", {
+                mode: "no-cors",
+                signal: timeoutSignal(650)
+            });
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function timeoutSignal(ms) {
+        var controller = new AbortController();
+        setTimeout(function () {
+            controller.abort();
+        }, ms);
+        return controller.signal;
     }
 
     async function sendKey(key) {
